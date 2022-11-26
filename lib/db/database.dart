@@ -140,7 +140,7 @@ ${FridgesFields.fridgeName} $textType
     final result = await db.query(
       tableproducts,
       columns: ProductsFields.values,
-      where: '{$ProductsFields.id} =?',
+      where: '${ProductsFields.id} =?',
       whereArgs: [id],
     );
     if (result.isNotEmpty) {

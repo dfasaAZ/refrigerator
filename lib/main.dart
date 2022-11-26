@@ -6,9 +6,16 @@ import 'package:flutter/material.dart';
 import 'package:refrigerator/db/database.dart';
 import 'package:refrigerator/model/fridgemodel.dart';
 import 'package:refrigerator/pages/fridge.dart';
+import 'package:refrigerator/pages/productedit.dart';
 
 void main() {
   runApp(const MyApp());
+}
+
+class Design {
+  static const Color LightBlue = Color.fromARGB(255, 70, 162, 238);
+  static const Color DarkBlue = Color.fromARGB(255, 71, 69, 230);
+  static const textDesign = TextStyle(color: Colors.white);
 }
 
 class MyApp extends StatelessWidget {
@@ -20,14 +27,27 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Мой недохолодильник',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+          primarySwatch: Colors.blue,
+          inputDecorationTheme: //раскраска и оформление всех текстбоксов
+              InputDecorationTheme(
+                  filled: true,
+                  fillColor: Design.DarkBlue,
+                  focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(width: 1.5),
+                      borderRadius: BorderRadius.circular(50)),
+                  enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(width: 1.5),
+                      borderRadius: BorderRadius.circular(50))),
+          textTheme: TextTheme(
+              subtitle1: Design.textDesign)), //раскраска и оформление текста
       home: const MyHomePage(title: 'Главная страница'),
       initialRoute: '/',
       routes: {
         // '/': (context) => const MyHomePage(title: 'главная страница'),
         '/fridge': (context) =>
-            FridgePage(ModalRoute.of(context)!.settings.arguments as int)
+            FridgePage(ModalRoute.of(context)!.settings.arguments as int),
+        '/fridge/productedit': (context) =>
+            ProductEditPage(ModalRoute.of(context)!.settings.arguments as int)
       },
     );
   }

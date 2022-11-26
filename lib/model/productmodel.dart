@@ -22,18 +22,20 @@ class ProductsFields {
 
 class Products {
   final int? id;
-  final int fridge_id;
-  final String productName;
-  final DateTime exp_date;
-  final int quantity;
-  final String measure;
-  const Products({
+  int fridge_id;
+  String productName;
+  DateTime exp_date;
+  int quantity;
+  String measure;
+  bool selected;
+  Products({
     this.id,
     required this.fridge_id,
     required this.productName,
     required this.exp_date,
     required this.quantity,
     required this.measure,
+    this.selected = false,
   });
   Map<String, Object?> toJson() => {
         //даты и булевый тип нужно будет конвертировать

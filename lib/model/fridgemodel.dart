@@ -1,5 +1,3 @@
-import 'package:refrigerator/db/database.dart';
-
 const String tableFridges = "fridges"; //название таблицы холодильники
 
 class FridgesFields {
