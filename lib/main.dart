@@ -7,6 +7,7 @@ import 'package:refrigerator/db/database.dart';
 import 'package:refrigerator/model/fridgemodel.dart';
 import 'package:refrigerator/pages/fridge.dart';
 import 'package:refrigerator/pages/productedit.dart';
+import 'package:refrigerator/notifications/local_notifications.dart';
 
 void main() {
   runApp(const MyApp());
@@ -156,12 +157,28 @@ class _MyHomePageState extends State<MyHomePage> {
     return fFridges;
   } //создание списка для подстановки в таблицу
 
+  late final LocalNotificationService service;
   bool isLoading = false;
+  void listenToNotification() =>
+      service.onNotificationClick.stream.listen(onNoticationListener);
+  void onNoticationListener(String? payload) {
+    if (payload != null && payload.isNotEmpty) {
+      print('payload $payload');
+
+      // Navigator.push(
+      //     context,
+      //     MaterialPageRoute(
+      //         builder: ((context) => FridgePage(payload))));
+    }
+  }
 
   late List<Fridge> fridges = [];
 
   @override
   void initState() {
+    service = LocalNotificationService();
+    service.intialize();
+    listenToNotification();
     super.initState();
     refreshHomePage();
   }
@@ -353,9 +370,12 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: _showWIP,
-        tooltip: 'Increment',
-        child: const Icon(Icons.photo_camera),
+        onPressed: (() async {
+          await LocalNotificationService().showNotification(
+              id: 1, title: "Заголовок", body: "Текст уведомления");
+        }),
+        tooltip: 'Импорт продуктов(пока тест уведомлений)',
+        child: const Icon(Icons.download),
       ),
       // This trailing comma makes auto-formatting nicer for build methods.
     );
