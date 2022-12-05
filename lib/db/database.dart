@@ -1,3 +1,5 @@
+// ignore_for_file: depend_on_referenced_packages
+
 import 'dart:async';
 
 import 'package:path/path.dart';
@@ -31,7 +33,7 @@ class Mydb {
             _onUpgrage); //когда буду редачить нужно поменять версию и дописать OnUpdate или что-то такое
   }
 
-  FutureOr<void> _onUpgrage(Database db, int OldVersion, int NewVersion) async {
+  FutureOr<void> _onUpgrage(Database db, int oldVersion, int newVersion) async {
     const idType = 'integer primary key autoincrement';
     const textType = 'TEXT NOT NULL';
     const intType = 'INTEGER NOT NULL';
@@ -56,6 +58,7 @@ on delete cascade on update cascade
   Future _createDB(Database db, int version) async {
     const idType = 'integer primary key autoincrement';
     const textType = 'TEXT NOT NULL';
+    // ignore: unused_local_variable
     const intType = 'INTEGER NOT NULL';
     //выше сокращения для типов данных, чтобы при создании сто раз не писать
     await db.execute('''Create table $tableFridges (
@@ -76,7 +79,7 @@ ${FridgesFields.fridgeName} $textType
     final result = await db.query(
       tableFridges,
       columns: FridgesFields.values,
-      where: '{$FridgesFields.id} =?',
+      where: '${FridgesFields.id} =?',
       whereArgs: [id],
     );
     if (result.isNotEmpty) {
@@ -109,6 +112,13 @@ ${FridgesFields.fridgeName} $textType
       tableFridges,
       fridge,
     );
+  }
+
+  Future<int> lastFridge() async {
+    final db = await Mydb.instance.database; //получение базы данных
+    final result =
+        await db.query(tableFridges, orderBy: '${FridgesFields.id} desc');
+    return result.map((json) => Fridge.fromJson(json)).toList().first.id!;
   }
 
   Future<int> countFridges() async {
@@ -188,6 +198,15 @@ ${FridgesFields.fridgeName} $textType
     final db = await Mydb.instance.database; //получение базы данных
     List<Map> list = await db.rawQuery('select * from Products');
     return list.length;
+  }
+
+  Future<int> lastProduct(int fridgeId) async {
+    final db = await Mydb.instance.database; //получение базы данных
+    final result = await db.query(tableproducts,
+        where: '${ProductsFields.fridge_id} = ?',
+        whereArgs: [fridgeId],
+        orderBy: '${ProductsFields.id} desc');
+    return result.map((json) => Products.fromJson(json)).toList().first.id!;
   }
 
   deleteProducts(int id) async {

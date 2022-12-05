@@ -9,8 +9,8 @@ class FridgesFields {
 
 class Fridge {
   final int? id;
-  final String fridgeName;
-  const Fridge({
+  String fridgeName;
+  Fridge({
     this.id,
     required this.fridgeName,
   });

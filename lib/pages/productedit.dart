@@ -1,5 +1,7 @@
 //import 'dart:html';
 
+// ignore_for_file: unnecessary_import
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:refrigerator/db/database.dart';
@@ -14,7 +16,7 @@ import 'package:refrigerator/model/productmodel.dart';
 //   ;
 // }
 
-Set<DropdownMenuItem<String>>? testquantity = null;
+Set<DropdownMenuItem<String>>? testquantity;
 Set<DropdownMenuItem<String>> measure = {
   const DropdownMenuItem(
     value: "шт",
@@ -43,24 +45,6 @@ Set<DropdownMenuItem<String>> measure = {
 //   }
 // }
 
-var roundedInputBox = InputDecoration(
-    fillColor: Design.LightBlue,
-    focusedBorder: OutlineInputBorder(
-        borderSide: const BorderSide(width: 0.1),
-        borderRadius: BorderRadius.circular(50)),
-    enabledBorder: OutlineInputBorder(
-        borderSide: const BorderSide(width: 0.1),
-        borderRadius: BorderRadius.circular(50)));
-
-var roundedTextBox = BoxDecoration(
-    color: Design.DarkBlue,
-    border: Border.all(width: 0),
-    borderRadius: const BorderRadius.all(Radius.elliptical(50, 100)));
-var roundedETextBox = BoxDecoration(
-    color: Design.LightBlue,
-    border: Border.all(width: 0),
-    borderRadius: const BorderRadius.all(Radius.elliptical(50, 100)));
-
 class ProductEditPage extends StatefulWidget {
   final int args;
   const ProductEditPage(this.args, {super.key});
@@ -81,7 +65,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
   void initState() {
     DropdownMenuItem<String> temp;
     if (testquantity == null) {
-      testquantity = {DropdownMenuItem(value: "1", child: Text("1"))};
+      testquantity = {const DropdownMenuItem(value: "1", child: Text("1"))};
       for (int i = 2; i < 101; i++) {
         temp = DropdownMenuItem(
           value: i.toString(),
@@ -112,7 +96,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
 
   Future saveProduct() async {
     Mydb.instance.updateProducts(product);
-    refreshProductEditPage(widget.args);
+    // refreshProductEditPage(widget.args);
   }
 
   Future refreshProductEditPage(int id) async {
@@ -155,16 +139,16 @@ class _ProductEditPageState extends State<ProductEditPage> {
             Navigator.pop(context);
           },
         ),
-        title: Text('Изменение продукта ${widget.args}'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: GestureDetector(
-              onTap: () => saveProduct(),
-              child: const Icon(Icons.save_rounded),
-            ),
-          )
-        ],
+        title: Text('Изменение продукта'),
+        // actions: [
+        //   Padding(
+        //     padding: const EdgeInsets.only(right: 6),
+        //     child: GestureDetector(
+        //       onTap: () => saveProduct(),
+        //       child: const Icon(Icons.save_rounded),
+        //     ),
+        //   )
+        // ],
       ),
       body: !isLoading
           ? DefaultTextStyle(
@@ -176,7 +160,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
                     child: SizedBox(
                       width: 200,
                       child: TextField(
-                        decoration: roundedInputBox,
+                        decoration: Design.roundedInputBox,
                         textAlign: TextAlign.center,
                         controller: TextEditingController()
                           ..text = product.productName,
@@ -192,113 +176,127 @@ class _ProductEditPageState extends State<ProductEditPage> {
                     children: [
                       Container(
                         padding: const EdgeInsets.only(bottom: space),
+                        child: IntrinsicHeight(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(right: space),
+                                child: Container(
+                                  decoration: Design.roundedTextBox,
+                                  child: const Padding(
+                                    padding: borderpadding,
+                                    child: Center(
+                                      child: Text(
+                                        "Дата окончания срока годности",
+                                        style: Design.textDesign,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                decoration: Design.roundedETextBox,
+                                padding: borderpadding,
+                                child: TextButton(
+                                  onPressed: (() => _calendar(context)),
+                                  child: Text(
+                                    "${product.exp_date.day.toString()}.${product.exp_date.month.toString()}.${product.exp_date.year.toString()}",
+                                    style: Design.textDesign,
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                      IntrinsicHeight(
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Padding(
-                              padding: EdgeInsets.only(right: space),
+                              padding: const EdgeInsets.only(right: space),
                               child: Container(
-                                decoration: roundedTextBox,
+                                decoration: Design.roundedTextBox,
                                 child: const Padding(
                                   padding: borderpadding,
-                                  child: Text(
-                                    "Дата окончания срока годности",
-                                    style: Design.textDesign,
+                                  child: Center(
+                                    child: Text(
+                                      "Количество",
+                                      style: Design.textDesign,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                            Container(
-                              decoration: roundedETextBox,
-                              padding: borderpadding,
-                              child: TextButton(
-                                child: Text(
-                                  "${product.exp_date.day.toString()}.${product.exp_date.month.toString()}.${product.exp_date.year.toString()}",
-                                  style: Design.textDesign,
+                            Padding(
+                              padding: const EdgeInsets.only(right: space),
+                              child: Container(
+                                decoration: Design.roundedETextBox,
+                                // decoration: BoxDecoration(
+                                //     borderRadius: BorderRadius.circular(15.0),
+                                //     border: Border.all(
+                                //         style: BorderStyle.solid, width: 0.80)),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10.0),
+                                  child: DropdownButton<String>(
+                                    dropdownColor: Design.lightBlue,
+                                    items: testquantity!.toList(),
+                                    onChanged: (value) {
+                                      product.quantity = int.parse(value!);
+                                      setState(() {
+                                        selectedquantity = value;
+                                        //saveProduct();
+                                      });
+                                    },
+                                    value: selectedquantity,
+                                  ),
+                                  //child: Text(product.quantity.toString()),
                                 ),
-                                onPressed: (() => _calendar(context)),
                               ),
-                            )
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(right: space),
+                              child: Container(
+                                decoration: Design.roundedETextBox,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10.0),
+                                  child: DropdownButton<String>(
+                                    dropdownColor: Design.lightBlue,
+                                    items: measure.toList(),
+                                    onChanged: (value) {
+                                      product.measure = value!;
+                                      setState(() {
+                                        selectedmeasure = value;
+                                        //saveProduct();
+                                      });
+                                    },
+                                    value: selectedmeasure,
+                                  ),
+                                  //child: Text(product.measure),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(right: space),
-                            child: Container(
-                              decoration: roundedTextBox,
-                              child: const Padding(
-                                padding: borderpadding,
-                                child: Text(
-                                  "Количество",
-                                  style: Design.textDesign,
-                                ),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(right: space),
-                            child: Container(
-                              decoration: roundedETextBox,
-                              // decoration: BoxDecoration(
-                              //     borderRadius: BorderRadius.circular(15.0),
-                              //     border: Border.all(
-                              //         style: BorderStyle.solid, width: 0.80)),
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                                child: DropdownButton<String>(
-                                  items: testquantity!.toList(),
-                                  onChanged: (value) {
-                                    product.quantity = int.parse(value!);
-                                    setState(() {
-                                      selectedquantity = value;
-                                      saveProduct();
-                                    });
-                                  },
-                                  value: selectedquantity,
-                                ),
-                                //child: Text(product.quantity.toString()),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(right: space),
-                            child: Container(
-                              decoration: roundedETextBox,
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                                child: DropdownButton<String>(
-                                  items: measure.toList(),
-                                  onChanged: (value) {
-                                    product.measure = value!;
-                                    setState(() {
-                                      selectedmeasure = value;
-                                      saveProduct();
-                                    });
-                                  },
-                                  value: selectedmeasure,
-                                ),
-                                //child: Text(product.measure),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
                     ],
                   ),
-                  Spacer(),
+                  const Spacer(),
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: Container(
                         // padding: EdgeInsets.symmetric(horizontal: 50),
-                        decoration: roundedETextBox,
+                        decoration: Design.roundedETextBox,
                         child: TextButton(
                             style: TextButton.styleFrom(
-                                minimumSize: Size.fromHeight(60)),
+                                minimumSize: const Size.fromHeight(60)),
                             onPressed: (() => saveProduct()),
                             child: const Text(
                               "Сохранить",
@@ -310,7 +308,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
                 ]),
               ),
             )
-          : Text("Загрузка продукта"),
+          : const Text("Загрузка продукта"),
     );
   }
 }

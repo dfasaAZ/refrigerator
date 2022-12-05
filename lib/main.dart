@@ -13,9 +13,27 @@ void main() {
 }
 
 class Design {
-  static const Color LightBlue = Color.fromARGB(255, 70, 162, 238);
-  static const Color DarkBlue = Color.fromARGB(255, 71, 69, 230);
+  static const Color lightBlue = Color.fromARGB(255, 70, 162, 238);
+  static const Color darkBlue = Color.fromARGB(255, 21, 17, 247);
   static const textDesign = TextStyle(color: Colors.white);
+  static const textDesignBig = TextStyle(color: Colors.white, fontSize: 18);
+
+  static var roundedInputBox = InputDecoration(
+      fillColor: Design.lightBlue,
+      focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide.none, borderRadius: BorderRadius.circular(50)),
+      enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(50)));
+
+  static var roundedTextBox = const BoxDecoration(
+      color: Design.darkBlue,
+      border: Border.fromBorderSide(BorderSide.none),
+      borderRadius: BorderRadius.all(Radius.elliptical(50, 100)));
+  static var roundedETextBox = const BoxDecoration(
+      color: Design.lightBlue,
+      border: Border.fromBorderSide(BorderSide.none),
+      borderRadius: BorderRadius.all(Radius.elliptical(50, 100)));
 }
 
 class MyApp extends StatelessWidget {
@@ -31,21 +49,21 @@ class MyApp extends StatelessWidget {
           inputDecorationTheme: //раскраска и оформление всех текстбоксов
               InputDecorationTheme(
                   filled: true,
-                  fillColor: Design.DarkBlue,
+                  fillColor: Design.darkBlue,
                   focusedBorder: OutlineInputBorder(
                       borderSide: const BorderSide(width: 1.5),
                       borderRadius: BorderRadius.circular(50)),
                   enabledBorder: OutlineInputBorder(
                       borderSide: const BorderSide(width: 1.5),
                       borderRadius: BorderRadius.circular(50))),
-          textTheme: TextTheme(
+          textTheme: const TextTheme(
               subtitle1: Design.textDesign)), //раскраска и оформление текста
       home: const MyHomePage(title: 'Главная страница'),
       initialRoute: '/',
       routes: {
         // '/': (context) => const MyHomePage(title: 'главная страница'),
         '/fridge': (context) =>
-            FridgePage(ModalRoute.of(context)!.settings.arguments as int),
+            FridgePage(ModalRoute.of(context)!.settings.arguments as Map),
         '/fridge/productedit': (context) =>
             ProductEditPage(ModalRoute.of(context)!.settings.arguments as int)
       },
@@ -72,7 +90,71 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  Map<int, bool> _selected = {}; //коды выбранных элементов в списке
+
+  bool _showCheckBoxes = false; //показывать ли галочки
+  void _onSelect(bool value, int i) {
+    //обработка нажатий по строкам списка
+
+    {
+      if (_showCheckBoxes) {
+        setState(() {
+          _selected[i] = value;
+          if (_selected.values.every((element) => element == false)) {
+            //скрывать галочки, если не выбран ни один элемент
+            _showCheckBoxes = false;
+          }
+        });
+      } else {
+        //переход к продукту, если выключен режим выделения
+        int fridgeId = i;
+
+        String fridgeName =
+            fridges.firstWhere((element) => element.id == i).fridgeName;
+        var fridgeInfo = {"id": fridgeId, "name": fridgeName};
+        Navigator.pushNamed(context, '/fridge', arguments: fridgeInfo)
+            .then((_) => refreshHomePage());
+      }
+    }
+  }
+
+  List<DataRow> fillForTable(List<Fridge> raw) {
+    //заполнение списка продуктов
+    late List<DataRow> fFridges = [];
+    for (int i = 0; i < raw.length; i++) {
+      var elem = raw[i];
+      fFridges.add(DataRow(
+          selected: _selected[elem.id]!,
+          onSelectChanged: (value) => _onSelect(value!, elem.id!),
+          // (value) {
+          //   if (_showCheckBoxes) {
+          //     setState(() {
+          //       _selected[i] = value!;
+          //       if (_selected.every((element) => element == false)) {
+          //         _showCheckBoxes = false;
+          //       }
+          //     });
+          //   }
+          // },
+          onLongPress: (() {
+            setState(() {
+              _selected[elem.id!] = true;
+              _showCheckBoxes = true;
+            });
+          }),
+          cells: [
+            DataCell(
+              Center(
+                child: Text(
+                  "${elem.fridgeName}",
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ]));
+    }
+    return fFridges;
+  } //создание списка для подстановки в таблицу
 
   bool isLoading = false;
 
@@ -87,26 +169,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Future refreshHomePage() async {
     setState(() => isLoading = true);
     fridges = await Mydb.instance.readAllFridges();
-
+    _selected = {for (var item in fridges) item.id!: false};
     setState(() {
       isLoading = false;
-    });
-  }
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  void _decrementCounter() {
-    setState(() {
-      _counter--;
     });
   }
 
@@ -144,58 +209,146 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  void _showDeleteError() {
+    //показать ошибку удаления
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          scrollable: true,
+          title: const Text("Ошибка удаления"),
+          content: const SingleChildScrollView(
+            child: Text(
+                style: TextStyle(color: Colors.black),
+                overflow: TextOverflow.visible,
+                "Не помечены элементы для удаления"),
+          ),
+          actions: <Widget>[
+            OutlinedButton(
+              child: const Text("Ок"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void deleteSelected() {
+    //удаление выбранных элементов
+    _showCheckBoxes = false;
+    for (var element in _selected.entries) {
+      if (element.value == true) {
+        deleteFridge(element.key);
+      }
+    }
+  }
+
+  Future newFridgeCreation() async {
+    //процесс создания продукта и перехода на страницу его редактирования
+    await addNewFridge();
+    late int temp1;
+    int fridgeId = await Mydb.instance.lastFridge();
+    //late int fridgeId = fridges.last.id!;
+
+    String fridgeName =
+        fridges.firstWhere((element) => element.id == fridgeId).fridgeName;
+    var fridgeInfo = {"id": fridgeId, "name": fridgeName};
+    Navigator.pushNamed(context, '/fridge', arguments: fridgeInfo)
+        .then((_) => refreshHomePage());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        backgroundColor: Colors.white,
+        shadowColor: Colors.white,
+        elevation: 0,
+        // title: Text(widget.title),
       ),
 
       body: Column(
         children: [
-          Row(
-            children: [
-              TextButton(
-                onPressed: () async {
-                  fridges.isNotEmpty
-                      ? await deleteFridge(fridges[fridges.length - 1].id ?? 1)
-                      : throw Exception("Not enough rows in table fridges");
-                },
-                child: const Text("Убрать последний элемент"),
-              ),
-              Expanded(
-                child: TextButton(
-                  onPressed: addNewFridge,
-                  child: const Text("Добавить новый"),
+          Container(
+            width: MediaQuery.of(context).size.width,
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
+            decoration: Design.roundedTextBox,
+            child: const SizedBox(
+              child: Center(
+                child: Text(
+                  "ХОЛОДИЛЬНИКИ ",
+                  style: Design.textDesignBig,
+                  textAlign: TextAlign.center,
                 ),
+              ),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                onPressed: _selected.containsValue(true)
+                    ? deleteSelected
+                    : _showDeleteError,
+                icon: const Icon(Icons.delete_outline_rounded),
+                //child: const Text("Удалить выбранные элементы"),
+              ),
+              IconButton(
+                onPressed: newFridgeCreation,
+                icon: const Icon(Icons.add_circle_rounded),
+                // child: const Text("Добавить новый"),
               ),
             ],
           ),
           Expanded(
-            child: fridges.isEmpty
-                ? const Text("Список пуст")
-                : ListView.builder(
-                    itemCount: fridges.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      int nidex = index + 1;
-                      return TextField(
-                        decoration: InputDecoration(
-                            labelText:
-                                ("${fridges[index].id},${fridges[index].fridgeName}")),
+              child: fridges.isEmpty
+                  ? const Text("Отсутствует холодильник, добавьте новый")
+                  : DataTable(
+                      headingRowHeight: 25,
+                      columnSpacing: 30,
+                      checkboxHorizontalMargin: 5,
+                      showCheckboxColumn: _showCheckBoxes,
+                      columns: const [
+                        DataColumn(
+                          label: Text(""),
+                          //  label: Text("Название холодильника",)
+                        ),
+                      ],
+                      rows: fillForTable(fridges),
+                    ))
+          // Expanded(
+          //   child: fridges.isEmpty
+          //       ? const Text("Список пуст")
+          //       :
+          //  ListView.builder(
+          //     itemCount: fridges.length,
+          //     itemBuilder: (BuildContext context, int index) {
+          //       int nidex = index + 1;
+          //       return TextField(
+          //         decoration: InputDecoration(
+          //             labelText:
+          //                 ("${fridges[index].id},${fridges[index].fridgeName}")),
 
-                        readOnly: true,
-                        // onTap: () async {
-                        //   await deleteFridge(fridges[index].id ?? 1);
-                        // },
-                        onTap: () {
-                          int fridgeid = fridges[index].id ?? 1;
-                          Navigator.pushNamed(context, '/fridge',
-                              arguments: fridgeid);
-                        },
-                      );
-                    },
-                  ),
-          )
+          //         readOnly: true,
+          //         // onTap: () async {
+          //         //   await deleteFridge(fridges[index].id ?? 1);
+          //         // },
+          //         onTap: () {
+          //           int fridgeid = fridges[index].id ?? 1;
+          //           String fridgeName = fridges[index].fridgeName;
+          //           var fridgeInfo = {"id": fridgeid, "name": fridgeName};
+          //           Navigator.pushNamed(context, '/fridge',
+          //                   arguments: fridgeInfo)
+          //               .then(
+          //             (value) => refreshHomePage(),
+          //           );
+          //         },
+          //       );
+          //     },
+          //   ),
         ],
       ),
 

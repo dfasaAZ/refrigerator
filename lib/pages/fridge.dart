@@ -1,38 +1,47 @@
+// ignore_for_file: unused_import
+
 import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:refrigerator/db/database.dart';
+import 'package:refrigerator/main.dart';
+import 'package:refrigerator/model/fridgemodel.dart';
 import 'package:refrigerator/model/productmodel.dart';
 
 class FridgePage extends StatefulWidget {
-  final int args;
+  final Map args;
   const FridgePage(this.args, {super.key});
   @override
   State<StatefulWidget> createState() => _FridgePageState();
 }
 
 class _FridgePageState extends State<FridgePage> {
-  bool isLoading = false;
-  //var args;
-  late List<Products> products = [];
+  bool isLoading = false; //загружается ли сейчас что-либо
 
-  Map<int, bool> _selected = {};
+  late List<Products> products = []; //список продуктов
+  late Fridge fridge = Fridge(fridgeName: "fridgeName");
 
-  bool _showCheckBoxes = false;
+  Map<int, bool> _selected = {}; //коды выбранных элементов в списке
+
+  bool _showCheckBoxes = false; //показывать ли галочки
   void _onSelect(bool value, int i) {
+    //обработка нажатий по строкам списка
+
     {
       if (_showCheckBoxes) {
         setState(() {
           _selected[i] = value;
           if (_selected.values.every((element) => element == false)) {
+            //скрывать галочки, если не выбран ни один элемент
             _showCheckBoxes = false;
           }
         });
       } else {
-        int productid = i ?? 1;
+        //переход к продукту, если выключен режим выделения
+        int productid = i;
         Navigator.pushNamed(context, '/fridge/productedit',
                 arguments: productid)
-            .then((_) => refreshFridgePage(widget.args));
+            .then((_) => refreshFridgePage(widget.args["id"]));
       }
     }
   }
@@ -40,7 +49,7 @@ class _FridgePageState extends State<FridgePage> {
   //late Map selected = {};
   @override
   void initState() {
-    refreshFridgePage(widget.args);
+    refreshFridgePage(widget.args["id"]);
     super.initState();
     // Future.delayed(Duration.zero, () {
     //   setState(() {
@@ -51,6 +60,7 @@ class _FridgePageState extends State<FridgePage> {
   }
 
   List<DataRow> fillForTable(List<Products> raw) {
+    //заполнение списка продуктов
     late List<DataRow> fProducts = [];
     for (int i = 0; i < raw.length; i++) {
       var elem = raw[i];
@@ -75,9 +85,16 @@ class _FridgePageState extends State<FridgePage> {
           }),
           cells: [
             DataCell(
-              Text(
-                  "${elem.id} ${elem.fridge_id} ${elem.productName} ${elem.quantity} ${elem.measure} ${elem.exp_date}"),
-            )
+              Text("${elem.productName}"),
+            ),
+            DataCell(
+              DateTime.now().isAfter(elem.exp_date)
+                  ? const Text("Просрок")
+                  : Text("${elem.exp_date.difference(DateTime.now()).inDays}"),
+            ),
+            DataCell(
+              Text("${elem.quantity} ${elem.measure}"),
+            ),
           ]));
     }
     return fProducts;
@@ -85,7 +102,7 @@ class _FridgePageState extends State<FridgePage> {
 
   Future refreshFridgePage(int id) async {
     setState(() => isLoading = true);
-
+    fridge = await Mydb.instance.readOneFridges(widget.args["id"]);
     products = await Mydb.instance.readAllProductsFridge(id);
     _selected = {for (var item in products) item.id!: false};
 
@@ -97,11 +114,13 @@ class _FridgePageState extends State<FridgePage> {
   }
 
   Future deleteProduct(int id) async {
+    //удаление продукта по коду
     await Mydb.instance.deleteProducts(id);
-    refreshFridgePage(widget.args);
+    refreshFridgePage(widget.args["id"]);
   }
 
   void deleteSelected() {
+    //удаление выбранных элементов
     _showCheckBoxes = false;
     for (var element in _selected.entries) {
       if (element.value == true) {
@@ -111,13 +130,14 @@ class _FridgePageState extends State<FridgePage> {
   }
 
   void _showDeleteError() {
+    //показать ошибку удаления
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           scrollable: true,
           title: const Text("Ошибка удаления"),
-          content: SingleChildScrollView(
+          content: const SingleChildScrollView(
             child: Text(
                 style: TextStyle(color: Colors.black),
                 overflow: TextOverflow.visible,
@@ -137,84 +157,135 @@ class _FridgePageState extends State<FridgePage> {
   }
 
   Future addNewProduct() async {
+    //добавление нового пустого продукта в бд
     final temp = Products(
-        fridge_id: widget.args,
-        productName: 'имя продукта',
+        fridge_id: widget.args["id"],
+        productName: 'Название',
         exp_date: DateTime.now(),
-        quantity: 6,
+        quantity: 1,
         measure: "шт");
     Mydb.instance.createProducts(temp);
-    refreshFridgePage(widget.args);
+    refreshFridgePage(widget.args["id"]);
+  }
+
+  Future newProductCreation() async {
+    //процесс создания продукта и перехода на страницу его редактирования
+    addNewProduct();
+    late int temp1;
+    temp1 = await Mydb.instance.lastProduct(widget.args["id"]);
+    //nt temp = products.last.id!;
+    Navigator.pushNamed(context, '/fridge/productedit', arguments: temp1)
+        .then((_) => refreshFridgePage(widget.args["id"]));
+  }
+
+  Future saveFridge() async {
+    Mydb.instance.updateFridges(fridge);
+    refreshFridgePage(widget.args["id"]);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Inside fridge ${widget.args}'),
+        leading: GestureDetector(
+          child: const Icon(Icons.arrow_back),
+          onTap: () {
+            // exit(context);
+            setState(() {
+              saveFridge();
+            });
+            Navigator.pop(context);
+          },
+        ),
+        //title: Text('Inside fridge ${widget.args["id"]}'),
       ),
-      body: isLoading
-          ? const Text("Загрузка")
-          : Column(
-              children: [
-                Row(
-                  children: [
-                    TextButton(
-                      onPressed: _selected.containsValue(true)
-                          ? deleteSelected
-                          : _showDeleteError,
-                      // () async {
-                      //   products.isNotEmpty
-                      //       ? await deleteProduct(
-                      //           products[products.length - 1].id ?? 1)
-                      //       : throw Exception(
-                      //           "Not enough rows in table products");
-                      // },
-                      child: const Text("Удалить выбранные элементы"),
-                    ),
-                    Expanded(
-                      child: TextButton(
-                        onPressed: addNewProduct,
-                        child: const Text("Добавить новый"),
-                      ),
-                    ),
-                  ],
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
+              decoration: Design.roundedTextBox,
+              child: const SizedBox(
+                child: Center(
+                  child: Text(
+                    "Внутренности холодильника ",
+                    style: Design.textDesignBig,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-                Expanded(
-                    child: products.isEmpty
-                        ? const Text("Список пуст")
-                        : DataTable(
-                            showCheckboxColumn: _showCheckBoxes,
-                            columns: [DataColumn(label: Text("Список"))],
-                            rows: fillForTable(products),
-                            // DataRow(cells: [DataCell(Text("data"))])
-                          )
-                    // : ListView.builder(
-                    //     itemCount: products.length,
-                    //     itemBuilder: (BuildContext context, int index) {
-                    //       int nidex = index + 1;
-                    //       return TextField(
-                    //         decoration: InputDecoration(
-                    //             labelText:
-                    //                 ("${products[index].id},${products[index].fridge_id},${products[index].productName},${products[index].exp_date},${products[index].measure},${products[index].quantity}")),
-
-                    //         readOnly: true,
-                    //         // onTap: () async {
-                    //         //   await deleteFridge(fridges[index].id ?? 1);
-                    //         // },
-                    //         onTap: () {
-                    //           int productid = products[index].id ?? 1;
-                    //           Navigator.pushNamed(context, '/fridge/productedit',
-                    //                   arguments: productid)
-                    //               .then((_) => refreshFridgePage(widget.args));
-                    //         },
-                    //       );
-                    //     },
-                    //   ),
-                    )
-              ],
-              // Navigator.pop(context); //выход отсюда
+              ),
             ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Container(
+              width: MediaQuery.of(context).size.width / 2,
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 15),
+              decoration: Design.roundedETextBox,
+              child: SizedBox(
+                child: Center(
+                  child: TextField(
+                    decoration: Design.roundedInputBox,
+                    textAlign: TextAlign.center,
+                    controller: TextEditingController()
+                      ..text = fridge.fridgeName,
+                    onChanged: (String value) {
+                      fridge.fridgeName = value;
+                    },
+                  ),
+                  // child: Text(
+                  //   "${widget.args["name"]}",
+                  //   style: Design.textDesignBig,
+                  //   textAlign: TextAlign.center,
+                  // ),
+                ),
+              ),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                onPressed: _selected.containsValue(true)
+                    ? deleteSelected
+                    : _showDeleteError,
+                icon: const Icon(Icons.delete_outline_rounded),
+                //child: const Text("Удалить выбранные элементы"),
+              ),
+              IconButton(
+                onPressed: newProductCreation,
+                icon: const Icon(Icons.add_circle_rounded),
+                // child: const Text("Добавить новый"),
+              ),
+            ],
+          ),
+          Expanded(
+              child: isLoading
+                  ? const Text("Загрузка")
+                  : products.isEmpty
+                      ? const Text("Список пуст")
+                      : DataTable(
+                          columnSpacing: 30,
+                          checkboxHorizontalMargin: 5,
+                          showCheckboxColumn: _showCheckBoxes,
+                          columns: const [
+                            DataColumn(label: Text("Наименование")),
+                            DataColumn(
+                                label: Flexible(
+                                    child: Text(
+                              "Дней до окончания срока",
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ))),
+                            DataColumn(label: Text("Кол-во"))
+                          ],
+                          rows: fillForTable(products),
+                        ))
+        ],
+        // Navigator.pop(context); //выход отсюда
+      ),
     );
   }
 }
