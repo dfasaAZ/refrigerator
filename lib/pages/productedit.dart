@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:refrigerator/db/database.dart';
 import 'package:refrigerator/main.dart';
 import 'package:refrigerator/model/productmodel.dart';
+import 'package:refrigerator/notifications/local_notifications.dart';
 
 //List<int> quantity = [1, 2];
 // void fillQuantity() {
@@ -79,9 +80,25 @@ class _ProductEditPageState extends State<ProductEditPage> {
     super.initState();
   }
 
+  late final LocalNotificationService service;
+
+  void listenToNotification() =>
+      service.onNotificationClick.stream.listen(onNoticationListener);
+  void onNoticationListener(String? payload) {
+    if (payload != null && payload.isNotEmpty) {
+      print('payload $payload');
+
+      // Navigator.push(
+      //     context,
+      //     MaterialPageRoute(
+      //         builder: ((context) => FridgePage(payload))));
+    }
+  }
+
   Future _calendar(BuildContext context) async {
     final DateTime? date = await showDatePicker(
         context: context,
+        initialEntryMode: DatePickerEntryMode.calendarOnly,
         initialDate: product.exp_date,
         firstDate: DateTime(2021),
         lastDate: DateTime(selecteddate.year + 30));
@@ -96,6 +113,12 @@ class _ProductEditPageState extends State<ProductEditPage> {
 
   Future saveProduct() async {
     Mydb.instance.updateProducts(product);
+    await LocalNotificationService().showScheduledNotification(
+        id: product.id!,
+        title: "Сроки годности",
+        body:
+            "Срок годности одного из ваших продуктов подходит к концу: ${product.productName}",
+        date: product.exp_date);
     // refreshProductEditPage(widget.args);
   }
 
@@ -163,7 +186,9 @@ class _ProductEditPageState extends State<ProductEditPage> {
                         decoration: Design.roundedInputBox,
                         textAlign: TextAlign.center,
                         controller: TextEditingController()
-                          ..text = product.productName,
+                          ..text = product.productName
+                          ..selection = TextSelection.fromPosition(
+                              TextPosition(offset: product.productName.length)),
                         onChanged: (String value) {
                           product.productName = value;
                         },
@@ -290,14 +315,18 @@ class _ProductEditPageState extends State<ProductEditPage> {
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 10) +
+                          const EdgeInsets.only(bottom: 50),
                       child: Container(
                         // padding: EdgeInsets.symmetric(horizontal: 50),
                         decoration: Design.roundedETextBox,
                         child: TextButton(
                             style: TextButton.styleFrom(
                                 minimumSize: const Size.fromHeight(60)),
-                            onPressed: (() => saveProduct()),
+                            onPressed: (() {
+                              saveProduct();
+                              Navigator.pop(context);
+                            }),
                             child: const Text(
                               "Сохранить",
                               style: Design.textDesign,

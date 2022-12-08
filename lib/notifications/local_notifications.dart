@@ -22,7 +22,7 @@ class LocalNotificationService {
     await _localNotificationService.initialize(
       settings,
 
-      //getNotificationAppLaunchDetails: onSelectNotification,
+      // onDidReceiveNotificationResponse: onSelectNotification,
     );
   }
 
@@ -57,21 +57,31 @@ class LocalNotificationService {
       {required int id,
       required String title,
       required String body,
-      required int seconds}) async {
+      required DateTime date}) async {
     final details = await _notificationDetails();
-    await _localNotificationService.zonedSchedule(
-      id,
-      title,
-      body,
-      tz.TZDateTime.from(
-        DateTime.now().add(Duration(seconds: seconds)),
-        tz.local,
-      ),
-      details,
-      androidAllowWhileIdle: true,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-    );
+    date.isAfter(DateTime.now())
+        ? await _localNotificationService.zonedSchedule(
+            id,
+            title,
+            body,
+            tz.TZDateTime.from(
+              date,
+              // date.subtract(const Duration(days: 1)),
+              // DateTime.now().add(Duration(seconds: seconds)),
+              tz.local,
+            ),
+            details,
+            androidAllowWhileIdle: true,
+            uiLocalNotificationDateInterpretation:
+                UILocalNotificationDateInterpretation.absoluteTime,
+          )
+        : await _localNotificationService.zonedSchedule(id, title, body,
+            tz.TZDateTime.now(tz.local).add(Duration(seconds: 1)), details,
+            androidAllowWhileIdle: true,
+            uiLocalNotificationDateInterpretation:
+                UILocalNotificationDateInterpretation.absoluteTime);
+
+    ;
   }
 
   Future<void> showNotificationWithPayload(

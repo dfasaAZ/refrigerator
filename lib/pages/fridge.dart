@@ -26,7 +26,7 @@ class _FridgePageState extends State<FridgePage> {
   bool _showCheckBoxes = false; //показывать ли галочки
   void _onSelect(bool value, int i) {
     //обработка нажатий по строкам списка
-
+    //saveFridge();
     {
       if (_showCheckBoxes) {
         setState(() {
@@ -90,7 +90,8 @@ class _FridgePageState extends State<FridgePage> {
             DataCell(
               DateTime.now().isAfter(elem.exp_date)
                   ? const Text("Просрок")
-                  : Text("${elem.exp_date.difference(DateTime.now()).inDays}"),
+                  : Text(
+                      "${(elem.exp_date.difference(DateTime.now()).inHours / 24).ceil()}"),
             ),
             DataCell(
               Text("${elem.quantity} ${elem.measure}"),
@@ -230,10 +231,13 @@ class _FridgePageState extends State<FridgePage> {
                     decoration: Design.roundedInputBox,
                     textAlign: TextAlign.center,
                     controller: TextEditingController()
-                      ..text = fridge.fridgeName,
+                      ..text = fridge.fridgeName
+                      ..selection = TextSelection.fromPosition(
+                          TextPosition(offset: fridge.fridgeName.length)),
                     onChanged: (String value) {
                       fridge.fridgeName = value;
                     },
+                    onEditingComplete: saveFridge,
                   ),
                   // child: Text(
                   //   "${widget.args["name"]}",

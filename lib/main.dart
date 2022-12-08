@@ -120,7 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   List<DataRow> fillForTable(List<Fridge> raw) {
-    //заполнение списка продуктов
+    //заполнение списка холодильников
     late List<DataRow> fFridges = [];
     for (int i = 0; i < raw.length; i++) {
       var elem = raw[i];
@@ -212,7 +212,10 @@ class _MyHomePageState extends State<MyHomePage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text("Предупреждение"),
-          content: const Text("Это ещё не сделано"),
+          content: const Text(
+            "Здесь будет импорт продуктов из электронного чека",
+            style: TextStyle(color: Colors.black),
+          ),
           actions: <Widget>[
             OutlinedButton(
               child: const Text("Понял, принял"),
@@ -370,11 +373,8 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: (() async {
-          await LocalNotificationService().showNotification(
-              id: 1, title: "Заголовок", body: "Текст уведомления");
-        }),
-        tooltip: 'Импорт продуктов(пока тест уведомлений)',
+        onPressed: _showWIP,
+        tooltip: 'Импорт продуктов',
         child: const Icon(Icons.download),
       ),
       // This trailing comma makes auto-formatting nicer for build methods.

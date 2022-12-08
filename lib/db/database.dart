@@ -26,7 +26,7 @@ class Mydb {
     final path = join(dbPath, filepath);
     //Всё ,что выше - вообще не трогать
     return await openDatabase(path,
-        version: 2,
+        version: 3,
         onCreate: _createDB,
         onConfigure: _onConfigure,
         onUpgrade:
@@ -43,6 +43,7 @@ class Mydb {
 ${FridgesFields.id} $idType,
 ${FridgesFields.fridgeName} $textType 
     )'''); //sql запрос на создание таблицы холодильники
+    await db.execute('''drop table $tableproducts''');
     await db.execute('''Create table $tableproducts (
 ${ProductsFields.id} $idType,
 ${ProductsFields.fridge_id} $intType,
@@ -57,6 +58,7 @@ on delete cascade on update cascade
 
   Future _createDB(Database db, int version) async {
     const idType = 'integer primary key autoincrement';
+    await db.execute('PRAGMA foreign_keys = ON');
     const textType = 'TEXT NOT NULL';
     // ignore: unused_local_variable
     const intType = 'INTEGER NOT NULL';
@@ -64,6 +66,16 @@ on delete cascade on update cascade
     await db.execute('''Create table $tableFridges (
 ${FridgesFields.id} $idType,
 ${FridgesFields.fridgeName} $textType 
+    )'''); //sql запрос на создание таблицы холодильники
+    await db.execute('''Create table $tableproducts (
+${ProductsFields.id} $idType,
+${ProductsFields.fridge_id} $intType,
+${ProductsFields.productName} $textType,
+${ProductsFields.exp_date} $textType,
+${ProductsFields.quantity} $intType,
+${ProductsFields.measure} $textType,
+FOREIGN KEY (${ProductsFields.fridge_id}) REFERENCES $tableFridges (${FridgesFields.id}) 
+on delete cascade on update cascade
     )'''); //sql запрос на создание таблицы холодильники
   }
 
