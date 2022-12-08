@@ -37,7 +37,13 @@ class _JsonImportPageState extends State<JsonImportPage> {
     }
     final path = result.files.first.path;
     File file = File(path!);
-    JsonText = jsonDecode(await file.readAsString());
+    try {
+      JsonText = jsonDecode(await file.readAsString());
+    } catch (e) {
+      Navigator.pop(context);
+      return;
+      throw Exception("Ошибка чтения файла");
+    }
     if (JsonText != null) {
       setState(() {
         products = JsonText?["items"];
