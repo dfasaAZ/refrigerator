@@ -8,6 +8,7 @@ import 'package:refrigerator/model/fridgemodel.dart';
 import 'package:refrigerator/pages/fridge.dart';
 import 'package:refrigerator/pages/productedit.dart';
 import 'package:refrigerator/notifications/local_notifications.dart';
+import 'package:refrigerator/pages/jsonimport.dart';
 
 void main() {
   runApp(const MyApp());
@@ -66,7 +67,9 @@ class MyApp extends StatelessWidget {
         '/fridge': (context) =>
             FridgePage(ModalRoute.of(context)!.settings.arguments as Map),
         '/fridge/productedit': (context) =>
-            ProductEditPage(ModalRoute.of(context)!.settings.arguments as int)
+            ProductEditPage(ModalRoute.of(context)!.settings.arguments as int),
+        '/fridge/jsonimport': (context) =>
+            JsonImportPage(ModalRoute.of(context)!.settings.arguments as int)
       },
     );
   }
@@ -163,7 +166,7 @@ class _MyHomePageState extends State<MyHomePage> {
       service.onNotificationClick.stream.listen(onNoticationListener);
   void onNoticationListener(String? payload) {
     if (payload != null && payload.isNotEmpty) {
-      print('payload $payload');
+      // print('payload $payload');
 
       // Navigator.push(
       //     context,
@@ -193,7 +196,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future addNewFridge() async {
-    Map<String, dynamic> temp = {FridgesFields.fridgeName: "Тестовая строка"};
+    Map<String, dynamic> temp = {
+      FridgesFields.fridgeName: "Название холодильника"
+    };
     await Mydb.instance.addFridges(temp);
 
     refreshHomePage();
@@ -289,7 +294,6 @@ class _MyHomePageState extends State<MyHomePage> {
         elevation: 0,
         // title: Text(widget.title),
       ),
-
       body: Column(
         children: [
           Container(
@@ -326,18 +330,20 @@ class _MyHomePageState extends State<MyHomePage> {
           Expanded(
               child: fridges.isEmpty
                   ? const Text("Отсутствует холодильник, добавьте новый")
-                  : DataTable(
-                      headingRowHeight: 25,
-                      columnSpacing: 30,
-                      checkboxHorizontalMargin: 5,
-                      showCheckboxColumn: _showCheckBoxes,
-                      columns: const [
-                        DataColumn(
-                          label: Text(""),
-                          //  label: Text("Название холодильника",)
-                        ),
-                      ],
-                      rows: fillForTable(fridges),
+                  : SingleChildScrollView(
+                      child: DataTable(
+                        headingRowHeight: 25,
+                        columnSpacing: 30,
+                        checkboxHorizontalMargin: 5,
+                        showCheckboxColumn: _showCheckBoxes,
+                        columns: const [
+                          DataColumn(
+                            label: Text(""),
+                            //  label: Text("Название холодильника",)
+                          ),
+                        ],
+                        rows: fillForTable(fridges),
+                      ),
                     ))
           // Expanded(
           //   child: fridges.isEmpty
@@ -371,13 +377,11 @@ class _MyHomePageState extends State<MyHomePage> {
           //   ),
         ],
       ),
-
       floatingActionButton: FloatingActionButton(
         onPressed: _showWIP,
         tooltip: 'Импорт продуктов',
         child: const Icon(Icons.download),
       ),
-      // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

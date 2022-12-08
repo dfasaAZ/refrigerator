@@ -290,6 +290,13 @@ class _FridgePageState extends State<FridgePage> {
         ],
         // Navigator.pop(context); //выход отсюда
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: (() => Navigator.pushNamed(context, "/fridge/jsonimport",
+                arguments: widget.args["id"])
+            .then((_) => refreshFridgePage(widget.args["id"]))),
+        tooltip: 'Импорт продуктов',
+        child: const Icon(Icons.download),
+      ),
     );
   }
 }
