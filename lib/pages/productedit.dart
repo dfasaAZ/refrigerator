@@ -113,12 +113,16 @@ class _ProductEditPageState extends State<ProductEditPage> {
 
   Future saveProduct() async {
     Mydb.instance.updateProducts(product);
-    await LocalNotificationService().showScheduledNotification(
-        id: product.id!,
-        title: "Сроки годности",
-        body:
-            "Срок годности одного из ваших продуктов подходит к концу: ${product.productName}",
-        date: product.exp_date);
+
+    if (product.exp_date.isAfter(DateTime.now())) {
+      await LocalNotificationService().showScheduledNotification(
+          id: product.id!,
+          title: "Сроки годности",
+          body:
+              "Срок годности одного из ваших продуктов подходит к концу: ${product.productName}",
+          date: product.exp_date);
+    }
+
     // refreshProductEditPage(widget.args);
   }
 

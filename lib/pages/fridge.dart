@@ -23,6 +23,17 @@ class _FridgePageState extends State<FridgePage> {
 
   Map<int, bool> _selected = {}; //коды выбранных элементов в списке
 
+  bool _sortNameAsc = true;
+  bool _sortDateAsc = true;
+  bool _sortQuantityAsc = true;
+  bool _sortAsc = true;
+  int _sortColumnIndex = 0;
+
+  void endFridgeEdit() {
+    saveFridge();
+    FocusManager.instance.primaryFocus?.unfocus(); //убрать клавиатуру
+  }
+
   bool _showCheckBoxes = false; //показывать ли галочки
   void _onSelect(bool value, int i) {
     //обработка нажатий по строкам списка
@@ -38,6 +49,7 @@ class _FridgePageState extends State<FridgePage> {
         });
       } else {
         //переход к продукту, если выключен режим выделения
+        endFridgeEdit();
         int productid = i;
         Navigator.pushNamed(context, '/fridge/productedit',
                 arguments: productid)
@@ -193,7 +205,7 @@ class _FridgePageState extends State<FridgePage> {
           onTap: () {
             // exit(context);
             setState(() {
-              saveFridge();
+              endFridgeEdit();
             });
             Navigator.pop(context);
           },
@@ -237,7 +249,9 @@ class _FridgePageState extends State<FridgePage> {
                     onChanged: (String value) {
                       fridge.fridgeName = value;
                     },
-                    onEditingComplete: saveFridge,
+                    onEditingComplete: (() {
+                      endFridgeEdit();
+                    }),
                   ),
                   // child: Text(
                   //   "${widget.args["name"]}",
@@ -270,22 +284,77 @@ class _FridgePageState extends State<FridgePage> {
                   ? const Text("Загрузка")
                   : products.isEmpty
                       ? const Text("Список пуст")
-                      : DataTable(
-                          columnSpacing: 30,
-                          checkboxHorizontalMargin: 5,
-                          showCheckboxColumn: _showCheckBoxes,
-                          columns: const [
-                            DataColumn(label: Text("Наименование")),
-                            DataColumn(
+                      : SingleChildScrollView(
+                          child: DataTable(
+                            sortColumnIndex: _sortColumnIndex,
+                            sortAscending: _sortAsc,
+                            columnSpacing: 30,
+                            checkboxHorizontalMargin: 5,
+                            showCheckboxColumn: _showCheckBoxes,
+                            columns: [
+                              DataColumn(
+                                label: Text("Наименование"),
+                                onSort: (columnIndex, ascending) {
+                                  setState(() {
+                                    columnIndex == _sortColumnIndex
+                                        ? _sortAsc = _sortNameAsc = ascending
+                                        : {
+                                            _sortColumnIndex = columnIndex,
+                                            _sortAsc = _sortNameAsc
+                                          };
+                                    products.sort(((a, b) => a.productName
+                                        .compareTo(b.productName)));
+                                    if (!_sortNameAsc) {
+                                      products = products.reversed.toList();
+                                    }
+                                  });
+                                },
+                              ),
+                              DataColumn(
                                 label: Flexible(
                                     child: Text(
-                              "Дней до окончания срока",
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                            ))),
-                            DataColumn(label: Text("Кол-во"))
-                          ],
-                          rows: fillForTable(products),
+                                  "Дней до окончания срока",
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                )),
+                                onSort: (columnIndex, ascending) {
+                                  setState(() {
+                                    columnIndex == _sortColumnIndex
+                                        ? _sortAsc = _sortDateAsc = ascending
+                                        : {
+                                            _sortColumnIndex = columnIndex,
+                                            _sortAsc = _sortDateAsc
+                                          };
+                                    products.sort(((a, b) =>
+                                        a.exp_date.compareTo(b.exp_date)));
+                                    if (!_sortDateAsc) {
+                                      products = products.reversed.toList();
+                                    }
+                                  });
+                                },
+                              ),
+                              DataColumn(
+                                label: Text("Кол-во"),
+                                onSort: (columnIndex, ascending) {
+                                  setState(() {
+                                    columnIndex == _sortColumnIndex
+                                        ? _sortAsc =
+                                            _sortQuantityAsc = ascending
+                                        : {
+                                            _sortColumnIndex = columnIndex,
+                                            _sortAsc = _sortQuantityAsc
+                                          };
+                                    products.sort(((a, b) =>
+                                        a.quantity.compareTo(b.quantity)));
+                                    if (!_sortQuantityAsc) {
+                                      products = products.reversed.toList();
+                                    }
+                                  });
+                                },
+                              )
+                            ],
+                            rows: fillForTable(products),
+                          ),
                         ))
         ],
         // Navigator.pop(context); //выход отсюда
