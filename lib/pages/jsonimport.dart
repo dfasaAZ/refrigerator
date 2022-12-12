@@ -8,6 +8,7 @@ import 'package:refrigerator/pages/productedit.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'package:refrigerator/model/productmodel.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 class JsonImportPage extends StatefulWidget {
   final int args;
@@ -20,10 +21,12 @@ class _JsonImportPageState extends State<JsonImportPage> {
   // late File file;
   late List products = [];
   Map<String, dynamic>? JsonText;
+  List<SharedMediaFile>? outsideFile;
   Map<String, bool> _selected = {}; //коды выбранных элементов в списке
   @override
   void initState() {
     //refreshJsonImportPage(widget.args);
+
     _openFile();
 
     super.initState();
@@ -41,17 +44,23 @@ class _JsonImportPageState extends State<JsonImportPage> {
       JsonText = jsonDecode(await file.readAsString());
     } catch (e) {
       Navigator.pop(context);
-      return;
       throw Exception("Ошибка чтения файла");
+      return;
     }
     if (JsonText != null) {
       setState(() {
-        products = JsonText?["items"];
+        try {
+          products = JsonText?["items"];
+        } catch (e) {
+          Navigator.pop(context);
+          return;
+          throw Exception("Отстутствует список продуктов");
+        }
         _selected = {for (var item in products) item["name"]: false};
       });
     }
 
-    print(JsonText);
+    // print(JsonText);
   }
 
   void _onSelect(bool value, String name) {

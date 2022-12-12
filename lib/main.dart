@@ -9,6 +9,8 @@ import 'package:refrigerator/pages/fridge.dart';
 import 'package:refrigerator/pages/productedit.dart';
 import 'package:refrigerator/notifications/local_notifications.dart';
 import 'package:refrigerator/pages/jsonimport.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'dart:async';
 
 void main() {
   runApp(const MyApp());
@@ -38,8 +40,59 @@ class Design {
       borderRadius: BorderRadius.all(Radius.elliptical(50, 100)));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  // late StreamSubscription _intentDataStreamSubscription;
+  // List<SharedMediaFile>? _sharedFiles;
+  // String? _sharedText;
+  @override
+  void initState() {
+    super.initState();
+    // TODO: Сделать поддержку импорта файлов и текста параллельно, начать с этого https://muetsch.io/how-to-receive-sharing-intents-in-flutter.html
+    // // For sharing images coming from outside the app while the app is in the memory
+    // _intentDataStreamSubscription = ReceiveSharingIntent.getMediaStream()
+    //     .listen((List<SharedMediaFile> value) {
+    //   setState(() {
+    //     _sharedFiles = value;
+    //     print("Shared:" + (_sharedFiles?.map((f) => f.path).join(",") ?? ""));
+    //   });
+    // }, onError: (err) {
+    //   print("getIntentDataStream error: $err");
+    // });
+
+    // // For sharing images coming from outside the app while the app is closed
+    // ReceiveSharingIntent.getInitialMedia().then((List<SharedMediaFile> value) {
+    //   setState(() {
+    //     _sharedFiles = value;
+    //     print("Shared:" + (_sharedFiles?.map((f) => f.path).join(",") ?? ""));
+    //   });
+    // });
+
+    // // For sharing or opening urls/text coming from outside the app while the app is in the memory
+    // _intentDataStreamSubscription =
+    //     ReceiveSharingIntent.getTextStream().listen((String value) {
+    //   setState(() {
+    //     _sharedText = value;
+    //     print("Shared: $_sharedText");
+    //   });
+    // }, onError: (err) {
+    //   print("getLinkStream error: $err");
+    // });
+
+    // // For sharing or opening urls/text coming from outside the app while the app is closed
+    // ReceiveSharingIntent.getInitialText().then((String? value) {
+    //   setState(() {
+    //     _sharedText = value;
+    //     print("Shared: $_sharedText");
+    //   });
+    // });
+  }
 
   // This widget is the root of your application.
   @override
@@ -190,6 +243,7 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() => isLoading = true);
     fridges = await Mydb.instance.readAllFridges();
     _selected = {for (var item in fridges) item.id!: false};
+    fillFridgeList();
     setState(() {
       isLoading = false;
     });
@@ -211,23 +265,69 @@ class _MyHomePageState extends State<MyHomePage> {
     // setState() {}
   }
 
-  void _showWIP() {
+  List<DropdownMenuItem<String>> fridgeList = [];
+  void fillFridgeList() {
+    fridgeList = [];
+    if (fridges.isNotEmpty) selectedFridge = fridges.first.id!.toString();
+    for (var element in fridges) {
+      fridgeList.add(DropdownMenuItem(
+        value: element.id.toString(),
+        child: Text(
+          element.fridgeName,
+          style: TextStyle(color: Colors.black),
+        ),
+      ));
+    }
+  }
+
+  late var selectedFridge;
+
+  void _importDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Предупреждение"),
-          content: const Text(
-            "Здесь будет импорт продуктов из электронного чека",
-            style: TextStyle(color: Colors.black),
-          ),
+          title: const Text("Импорт продуктов"),
+          content:
+              StatefulBuilder(// You need this, notice the parameters below:
+                  builder: (BuildContext context, StateSetter setState) {
+            return Column(
+              children: [
+                Center(
+                  child: const Text(
+                    "Выберите холодильник в который вы хотели бы добавить продукты",
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ),
+                fridges.isEmpty
+                    ? Text(
+                        "Сначала создайте хотя бы один холодильник",
+                        style: TextStyle(
+                            color: Colors.black, backgroundColor: Colors.red),
+                      )
+                    : DropdownButton(
+                        value: selectedFridge,
+                        //value: fridges.firstWhere((element) => element.id == selectedFridge).fridgeName as String,
+                        items: fridgeList,
+                        onChanged: (item) {
+                          setState(() {
+                            selectedFridge = item;
+                          });
+                        },
+                      )
+              ],
+            );
+          }),
           actions: <Widget>[
-            OutlinedButton(
-              child: const Text("Понял, принял"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+            if (fridges.isNotEmpty)
+              OutlinedButton(
+                child: const Text("Выбрать файл"),
+                onPressed: () {
+                  Navigator.pushNamed(context, '/fridge/jsonimport',
+                          arguments: int.parse(selectedFridge))
+                      .then((value) => Navigator.of(context).pop());
+                },
+              ),
           ],
         );
       },
@@ -378,7 +478,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showWIP,
+        onPressed: _importDialog,
         tooltip: 'Импорт продуктов',
         child: const Icon(Icons.download),
       ),
