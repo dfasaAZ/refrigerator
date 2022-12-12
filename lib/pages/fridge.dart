@@ -223,7 +223,7 @@ class _FridgePageState extends State<FridgePage> {
               child: const SizedBox(
                 child: Center(
                   child: Text(
-                    "Внутренности холодильника ",
+                    "Продукты ",
                     style: Design.textDesignBig,
                     textAlign: TextAlign.center,
                   ),

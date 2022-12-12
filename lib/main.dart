@@ -98,7 +98,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Мой недохолодильник',
+      title: 'Мой холодильник',
       theme: ThemeData(
           primarySwatch: Colors.blue,
           inputDecorationTheme: //раскраска и оформление всех текстбоксов

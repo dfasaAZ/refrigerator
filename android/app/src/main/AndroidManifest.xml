@@ -3,7 +3,7 @@
    <application
         android:label="Мой холодильник"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_freezer">
+        android:icon="@mipmap/fridge">
         <activity
             android:name=".MainActivity"
             android:exported="true"
