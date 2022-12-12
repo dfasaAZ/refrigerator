@@ -28,8 +28,9 @@ class LocalNotificationService {
 
   Future<NotificationDetails> _notificationDetails() async {
     const AndroidNotificationDetails androidNotificationDetails =
-        AndroidNotificationDetails('channel_id', 'channel_name',
-            channelDescription: 'description',
+        AndroidNotificationDetails('expiration', 'Сроки годности',
+            channelDescription:
+                'Уведомления об истекающем сроке годности продуктов',
             importance: Importance.max,
             priority: Priority.max,
             playSound: true);
