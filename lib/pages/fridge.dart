@@ -15,13 +15,15 @@ class FridgePage extends StatefulWidget {
   State<StatefulWidget> createState() => _FridgePageState();
 }
 
+///Страница холодильника
 class _FridgePageState extends State<FridgePage> {
   bool isLoading = false; //загружается ли сейчас что-либо
 
   late List<Products> products = []; //список продуктов
   late Fridge fridge = Fridge(fridgeName: "fridgeName");
 
-  Map<int, bool> _selected = {}; //коды выбранных элементов в списке
+  ///коды выбранных элементов в списке
+  Map<int, bool> _selected = {};
 
   bool _sortNameAsc = true;
   bool _sortDateAsc = true;
@@ -29,6 +31,7 @@ class _FridgePageState extends State<FridgePage> {
   bool _sortAsc = true;
   int _sortColumnIndex = 0;
 
+  ///Закончить редактирование названия холодильника
   void endFridgeEdit() {
     saveFridge();
     FocusManager.instance.primaryFocus?.unfocus(); //убрать клавиатуру
@@ -71,6 +74,7 @@ class _FridgePageState extends State<FridgePage> {
     // });
   }
 
+  ///Форматирование под таблицу
   List<DataRow> fillForTable(List<Products> raw) {
     //заполнение списка продуктов
     late List<DataRow> fProducts = [];
@@ -113,6 +117,7 @@ class _FridgePageState extends State<FridgePage> {
     return fProducts;
   } //создание списка для подстановки в таблицу
 
+  ///Обновить страницу
   Future refreshFridgePage(int id) async {
     setState(() => isLoading = true);
     fridge = await Mydb.instance.readOneFridges(widget.args["id"]);
@@ -126,12 +131,14 @@ class _FridgePageState extends State<FridgePage> {
     });
   }
 
+  ///Удалить продукт по id
   Future deleteProduct(int id) async {
     //удаление продукта по коду
     await Mydb.instance.deleteProducts(id);
     refreshFridgePage(widget.args["id"]);
   }
 
+  ///Удалить выбранные продукты
   void deleteSelected() {
     //удаление выбранных элементов
     _showCheckBoxes = false;
@@ -142,8 +149,8 @@ class _FridgePageState extends State<FridgePage> {
     }
   }
 
+  ///показать ошибку удаления
   void _showDeleteError() {
-    //показать ошибку удаления
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -169,6 +176,7 @@ class _FridgePageState extends State<FridgePage> {
     );
   }
 
+  ///Добавить в базу новый продукт
   Future addNewProduct() async {
     //добавление нового пустого продукта в бд
     final temp = Products(
@@ -181,16 +189,17 @@ class _FridgePageState extends State<FridgePage> {
     refreshFridgePage(widget.args["id"]);
   }
 
+  ///процесс создания продукта и перехода на страницу его редактирования
   Future newProductCreation() async {
-    //процесс создания продукта и перехода на страницу его редактирования
     addNewProduct();
     late int temp1;
     temp1 = await Mydb.instance.lastProduct(widget.args["id"]);
-    //nt temp = products.last.id!;
+
     Navigator.pushNamed(context, '/fridge/productedit', arguments: temp1)
         .then((_) => refreshFridgePage(widget.args["id"]));
   }
 
+  ///Сохранить холодильник
   Future saveFridge() async {
     Mydb.instance.updateFridges(fridge);
     refreshFridgePage(widget.args["id"]);

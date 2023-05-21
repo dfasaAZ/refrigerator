@@ -18,6 +18,8 @@ import 'package:refrigerator/notifications/local_notifications.dart';
 // }
 
 Set<DropdownMenuItem<String>>? testquantity;
+
+///Единицы измерения для заполнения
 Set<DropdownMenuItem<String>> measure = {
   const DropdownMenuItem(
     value: "шт",
@@ -53,6 +55,7 @@ class ProductEditPage extends StatefulWidget {
   State<StatefulWidget> createState() => _ProductEditPageState();
 }
 
+///Страница продукта
 class _ProductEditPageState extends State<ProductEditPage> {
   late Products product = Products(
       fridge_id: 1,
@@ -111,6 +114,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
     }
   }
 
+  ///Сохранение продукта
   Future saveProduct() async {
     Mydb.instance.updateProducts(product);
 
@@ -126,6 +130,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
     // refreshProductEditPage(widget.args);
   }
 
+  ///Обновить страницу
   Future refreshProductEditPage(int id) async {
     setState(() => isLoading = true);
     product = await Mydb.instance.readOneProducts(id);

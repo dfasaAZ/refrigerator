@@ -79,13 +79,15 @@ on delete cascade on update cascade
     )'''); //sql запрос на создание таблицы холодильники
   }
 
-/////////////////////////////ОБРАБОТКА ТАБЛИЦЫ ХОЛОДИЛЬНИКИ////////////////////
+//ОБРАБОТКА ТАБЛИЦЫ ХОЛОДИЛЬНИКИ////////////////////
+  ///создать запись в таблице из переменной типа Fridge
   Future<Fridge> createFridges(Fridge model) async {
     final db = await Mydb.instance.database; //получение базы данных
     final id = await db.insert(tableFridges, model.toJson());
     return model.copy(id: id);
-  } //создать запись в таблице из переменной типа Fridge
+  }
 
+  ///Чтение одной записи по айди из таблицы холодильники
   Future<Fridge> readOneFridges(int id) async {
     final db = await Mydb.instance.database; //получение базы данных
     final result = await db.query(
@@ -99,8 +101,9 @@ on delete cascade on update cascade
     } else {
       throw Exception('No such id :$id');
     }
-  } //Чтение одной записи по айди из таблицы холодильники
+  }
 
+  ///Возвращает все холодильники
   Future<List<Fridge>> readAllFridges() async {
     final db = await Mydb.instance.database; //получение базы данных
     final result =
@@ -108,6 +111,7 @@ on delete cascade on update cascade
     return result.map((json) => Fridge.fromJson(json)).toList();
   }
 
+  ///Обновляет существующий холодильник
   Future<int> updateFridges(Fridge fridge) async {
     final db = await Mydb.instance.database; //получение базы данных
     return db.update(
@@ -118,6 +122,7 @@ on delete cascade on update cascade
     );
   }
 
+  ///Добавляет новую запись в таблицу холодильники
   addFridges(Map<String, dynamic> fridge) async {
     final db = await Mydb.instance.database; //получение базы данных
     return db.insert(
@@ -126,6 +131,7 @@ on delete cascade on update cascade
     );
   }
 
+  ///Возвращает последний созданный холодильник
   Future<int> lastFridge() async {
     final db = await Mydb.instance.database; //получение базы данных
     final result =
@@ -133,12 +139,14 @@ on delete cascade on update cascade
     return result.map((json) => Fridge.fromJson(json)).toList().first.id!;
   }
 
+  ///Возвращает кол-во холодильников
   Future<int> countFridges() async {
     final db = await Mydb.instance.database; //получение базы данных
     List<Map> list = await db.rawQuery('select * from fridges');
     return list.length;
   }
 
+  ///Удалить холодильник
   deleteFridges(int id) async {
     final db = await Mydb.instance.database; //получение базы данных
     return await db.delete(
@@ -148,15 +156,16 @@ on delete cascade on update cascade
     );
   }
 
-///////////////////ОБРАБОТКА ТАБЛИЦЫ ПРОДУКТЫ///////////////////////////////////
+//ОБРАБОТКА ТАБЛИЦЫ ПРОДУКТЫ///////////////////////////////////
 
+  ///Создать запись в таблице из переменной типа Products
   Future<Products> createProducts(Products model) async {
     final db = await Mydb.instance.database; //получение базы данных
     final id = await db.insert(tableproducts, model.toJson());
     return model.copy(id: id);
   }
 
-//создать запись в таблице из переменной типа Products
+  ///Чтение одной записи по айди из таблицы холодильники
   Future<Products> readOneProducts(int id) async {
     final db = await Mydb.instance.database; //получение базы данных
     final result = await db.query(
@@ -170,8 +179,9 @@ on delete cascade on update cascade
     } else {
       throw Exception('No such id :$id');
     }
-  } //Чтение одной записи по айди из таблицы холодильники
+  }
 
+  ///Возвращает список всех продуктов
   Future<List<Products>> readAllProducts() async {
     final db = await Mydb.instance.database; //получение базы данных
     final result =
@@ -179,6 +189,7 @@ on delete cascade on update cascade
     return result.map((json) => Products.fromJson(json)).toList();
   }
 
+  ///Возвращает список всех продуктов из холодильника id
   Future<List<Products>> readAllProductsFridge(int id) async {
     final db = await Mydb.instance.database; //получение базы данных
     final result = await db.query(tableproducts,
@@ -188,6 +199,7 @@ on delete cascade on update cascade
     return result.map((json) => Products.fromJson(json)).toList();
   }
 
+  ///Обновление продукта
   Future<int> updateProducts(Products product) async {
     final db = await Mydb.instance.database; //получение базы данных
     return db.update(
@@ -198,6 +210,7 @@ on delete cascade on update cascade
     );
   }
 
+  ///Добавление продукта
   addProducts(Map<String, dynamic> product) async {
     final db = await Mydb.instance.database; //получение базы данных
     return db.insert(
@@ -206,12 +219,14 @@ on delete cascade on update cascade
     );
   }
 
+  ///Возвращает количество продуктов
   Future<int> countProducts() async {
     final db = await Mydb.instance.database; //получение базы данных
     List<Map> list = await db.rawQuery('select * from Products');
     return list.length;
   }
 
+  ///Возвращет последний продукт в холодильнике
   Future<int> lastProduct(int fridgeId) async {
     final db = await Mydb.instance.database; //получение базы данных
     final result = await db.query(tableproducts,
@@ -221,6 +236,7 @@ on delete cascade on update cascade
     return result.map((json) => Products.fromJson(json)).toList().first.id!;
   }
 
+  ///Удаляет продукт из базы данных
   deleteProducts(int id) async {
     final db = await Mydb.instance.database; //получение базы данных
     return await db.delete(

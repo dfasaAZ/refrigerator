@@ -54,6 +54,11 @@ class LocalNotificationService {
             UILocalNotificationDateInterpretation.absoluteTime);
   }
 
+/**
+ *Запустить отложенное уведомление
+ *
+ *Если дата сегодня или раньше, уведомление придет через несколько секунд после запуска
+ */
   Future<void> showScheduledNotification(
       {required int id,
       required String title,

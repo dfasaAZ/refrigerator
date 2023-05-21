@@ -1,7 +1,8 @@
 // ignore_for_file: non_constant_identifier_names, constant_identifier_names
+///название таблицы продукты
+const String tableproducts = "Products";
 
-const String tableproducts = "Products"; //название таблицы продукты
-
+///полный список полей
 class ProductsFields {
   static final List<String> values = [
     id,
@@ -10,7 +11,9 @@ class ProductsFields {
     exp_date,
     quantity,
     measure
-  ]; //полный список полей
+  ];
+
+//поля таблицы продукты
 
   static const String id = '_id';
   static const String fridge_id = 'fridge_id';
@@ -18,7 +21,7 @@ class ProductsFields {
   static const String exp_date = 'exp_date';
   static const String quantity = 'quantity';
   static const String measure = 'measure';
-} //поля таблицы продукты
+}
 
 class Products {
   final int? id;
@@ -27,7 +30,7 @@ class Products {
   DateTime exp_date;
   int quantity;
   String measure;
-  bool selected;
+  // bool selected;
   Products({
     this.id,
     required this.fridge_id,
@@ -35,8 +38,10 @@ class Products {
     required this.exp_date,
     required this.quantity,
     required this.measure,
-    this.selected = false,
+    // this.selected = false,
   });
+
+  ///Преобразование в формат для передачи базе данных
   Map<String, Object?> toJson() => {
         //даты и булевый тип нужно будет конвертировать
         //к булеву дописать   ? 1:0
@@ -48,6 +53,8 @@ class Products {
         ProductsFields.quantity: quantity,
         ProductsFields.measure: measure,
       };
+
+  ///Преобразование из результатов sql запроса в объект класса
   static Products fromJson(Map<String, Object?> json) => Products(
         //даты и булевый тип нужно будет конвертировать
         //к булеву дописать   ==1 вместо as Bool
@@ -59,6 +66,8 @@ class Products {
         quantity: json[ProductsFields.quantity] as int,
         measure: json[ProductsFields.measure] as String,
       );
+
+  ///Получить копию объекта класса
   Products copy({
     int? id,
     int? fridge_id,

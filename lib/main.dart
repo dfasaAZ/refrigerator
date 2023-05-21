@@ -146,6 +146,7 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+///Главная страница
 class _MyHomePageState extends State<MyHomePage> {
   Map<int, bool> _selected = {}; //коды выбранных элементов в списке
 
@@ -239,6 +240,7 @@ class _MyHomePageState extends State<MyHomePage> {
     refreshHomePage();
   }
 
+  ///Обновление страницы
   Future refreshHomePage() async {
     setState(() => isLoading = true);
     fridges = await Mydb.instance.readAllFridges();
@@ -249,6 +251,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  ///Добавление нового холодильника
   Future addNewFridge() async {
     Map<String, dynamic> temp = {
       FridgesFields.fridgeName: "Название холодильника"
@@ -258,6 +261,7 @@ class _MyHomePageState extends State<MyHomePage> {
     refreshHomePage();
   }
 
+  ///Удаление холодильника
   Future deleteFridge(int id) async {
     await Mydb.instance.deleteFridges(id);
 
@@ -266,6 +270,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   List<DropdownMenuItem<String>> fridgeList = [];
+
+  ///Формирование списка холодильников для экрана импорта
   void fillFridgeList() {
     fridgeList = [];
     if (fridges.isNotEmpty) selectedFridge = fridges.first.id!.toString();
@@ -282,6 +288,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   late var selectedFridge;
 
+  ///Окно импорта
   void _importDialog() {
     showDialog(
       context: context,
@@ -334,8 +341,8 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  ///показать ошибку удаления
   void _showDeleteError() {
-    //показать ошибку удаления
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -361,8 +368,8 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  ///удаление выбранных элементов
   void deleteSelected() {
-    //удаление выбранных элементов
     _showCheckBoxes = false;
     for (var element in _selected.entries) {
       if (element.value == true) {
@@ -371,8 +378,8 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  ///процесс создания продукта и перехода на страницу его редактирования
   Future newFridgeCreation() async {
-    //процесс создания продукта и перехода на страницу его редактирования
     await addNewFridge();
     late int temp1;
     int fridgeId = await Mydb.instance.lastFridge();
@@ -445,36 +452,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         rows: fillForTable(fridges),
                       ),
                     ))
-          // Expanded(
-          //   child: fridges.isEmpty
-          //       ? const Text("Список пуст")
-          //       :
-          //  ListView.builder(
-          //     itemCount: fridges.length,
-          //     itemBuilder: (BuildContext context, int index) {
-          //       int nidex = index + 1;
-          //       return TextField(
-          //         decoration: InputDecoration(
-          //             labelText:
-          //                 ("${fridges[index].id},${fridges[index].fridgeName}")),
-
-          //         readOnly: true,
-          //         // onTap: () async {
-          //         //   await deleteFridge(fridges[index].id ?? 1);
-          //         // },
-          //         onTap: () {
-          //           int fridgeid = fridges[index].id ?? 1;
-          //           String fridgeName = fridges[index].fridgeName;
-          //           var fridgeInfo = {"id": fridgeid, "name": fridgeName};
-          //           Navigator.pushNamed(context, '/fridge',
-          //                   arguments: fridgeInfo)
-          //               .then(
-          //             (value) => refreshHomePage(),
-          //           );
-          //         },
-          //       );
-          //     },
-          //   ),
         ],
       ),
       floatingActionButton: FloatingActionButton(

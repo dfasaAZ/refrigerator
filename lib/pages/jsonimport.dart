@@ -17,8 +17,8 @@ class JsonImportPage extends StatefulWidget {
   State<StatefulWidget> createState() => _JsonImportPageState();
 }
 
+///Страница импорта
 class _JsonImportPageState extends State<JsonImportPage> {
-  // late File file;
   late List products = [];
   Map<String, dynamic>? JsonText;
   List<SharedMediaFile>? outsideFile;
@@ -32,6 +32,7 @@ class _JsonImportPageState extends State<JsonImportPage> {
     super.initState();
   }
 
+  ///Открытие файла
   Future _openFile() async {
     final result = await FilePicker.platform.pickFiles(allowMultiple: false);
     if (result == null) {
@@ -81,6 +82,7 @@ class _JsonImportPageState extends State<JsonImportPage> {
     return fProducts;
   }
 
+  ///Перенос продуктов в базу данных
   Future addProducts(BuildContext cont) async {
     final temp = Products(
         fridge_id: widget.args,
